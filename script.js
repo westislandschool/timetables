@@ -1,6 +1,6 @@
 // CONFIGURATION VARIABLES - UPDATE THESE BEFORE UPLOADING
 const GOOGLE_CLIENT_ID = "1072308375404-tsk3rhfhil9pf6hv9c98vqachv07q484.apps.googleusercontent.com";
-const ALLOWED_DOMAIN = "wis.edu.hk"; // e.g., "school.edu" or "mycompany.org"
+const ALLOWED_DOMAIN = "wis.edu.hk"; // Your organization domain
 
 // Global state
 let globalTimetableData = [];
@@ -32,10 +32,10 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById("protectedApp").style.display = "block";
         document.getElementById("userBadge").textContent = "🛠️ Dev Mode (Localhost)";
         
-        // Automatically fetch data from your Apps Script
+        // Automatically fetch data from Netlify proxy
         fetchLiveTimetableFromDrive();
     } else {
-        // Enforce production security rules on GitHub Pages
+        // Enforce production security rules on Netlify
         if (typeof google !== 'undefined') {
             google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
@@ -52,7 +52,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Process Sign-In token and handle domain protection check (Only runs on GitHub)
+// Process Sign-In token and handle domain protection check (Only runs on production Netlify)
 function handleCredentialResponse(response) {
     try {
         const base64Url = response.credential.split('.')[1];
@@ -81,7 +81,6 @@ function handleCredentialResponse(response) {
 }
 
 function fetchLiveTimetableFromDrive() {
-    // Point cleanly to your relative serverless proxy endpoint
     const proxyUrl = '/.netlify/functions/fetch-timetable';
     
     const refreshBtn = document.getElementById('refreshTimetableBtn');
@@ -113,6 +112,7 @@ function handleViewChange() {
     const printIndvBtn = document.getElementById('printTimetablesBtn');
     const printSumBtn = document.getElementById('printSummaryBtn');
 
+    // Reset layout metrics to keep UI interactions clean
     document.getElementById('mainEntityFilter').value = '';
     document.getElementById('gridTeacherFilter').value = '';
     document.getElementById('gridRoomFilter').value = '';
@@ -438,6 +438,7 @@ function generateRowBasedTimeline(type) {
                 
                 if (matches.length > 0) {
                     matches.forEach(match => {
+                        // FIX: Restored exact target match parameters context variables layout parsing rules
                         const dynamicLabel = type === 'teacher' ? `${match.RoomCode || 'N/A'}` : `${match.TeacherId || 'N/A'}`;
                         cell.appendChild(createClassCard(match, dynamicLabel));
                     });
