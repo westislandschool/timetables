@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://accounts.google.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com;">
+    <title>Timetable Parser</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+        .upload-section { margin-bottom: 20px; padding: 15px; background: #fff; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; vertical-align: top; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .class-card { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 4px 8px; margin-bottom: 4px; border-radius: 3px; font-size: 0.9em; }
+        .class-code { font-weight: bold; color: #0d47a1; }
+        .details { font-size: 0.85em; color: #555; }
+        .btn { margin-left: 10px; padding: 6px 12px; font-weight: bold; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .export-btn { background-color: #007bff; }
+        .export-btn:hover { background-color: #0056b3; }
+        .print-btn { background-color: #e91e63; display: none; }
+        .print-btn:hover { background-color: #c2185b; }
+
+        /* Auth Screen Styling */
+        #authWall { 
+            max-width: 450px; 
+            margin: 100px auto; 
+            padding: 30px; 
+            background: #fff; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            text-align: center; 
+        }
+        #authWall h2 { color: #333; margin-top: 0; }
+        #authWall p { color: #666; margin-bottom: 25px; font-size: 0.95em; }
+        #buttonDiv { display: inline-block; }
+
+        /* Print-specific style adjustments */
+        @media print {
+            body * { visibility: hidden; }
+            #printOrderWrapper, #printOrderWrapper * { visibility: visible; }
+            #printOrderWrapper { position: absolute; left: 0; top: 0; width: 100%; }
+            .print-page { page-break-after: always; margin-bottom: 30px; }
+            table { width: 100%; border-collapse: collapse; page-break-inside: avoid; }
+            th { background-color: #555 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .class-card { border-left: 4px solid #2196f3 !important; background: #f0f4f8 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="authWall">
+    <h2>Access Restricted</h2>
+    <p>Please sign in with your official organization Google account to view the master schedules platform.</p>
+    <div id="buttonDiv"></div>
+</div>
+
+<div id="protectedApp" style="display: none;">
+    <div class="upload-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2 style="margin: 0;">LISS Timetable Live View</h2>
+            <span id="userBadge" style="font-size: 0.9em; color: #666; background: #eee; padding: 4px 10px; border-radius: 20px;"></span>
+        </div>
+        <button id="refreshTimetableBtn" class="btn export-btn">🔄 Reload Latest From Drive</button>
+        
+        <label for="viewSelect" style="margin-left: 20px; font-weight: bold;">Select View:</label>
+        <select id="viewSelect">
+            <option value="grid">Master Grid View (Periods x Days)</option>
+            <option value="teacher">Teacher List View</option>
+            <option value="room">Room List View</option>
+            <option value="summary">Teacher Utilization Summary View</option>
+        </select>
+
+        <button id="exportCsvBtn" class="btn export-btn">Export to CSV</button>
+        <button id="printTimetablesBtn" class="btn print-btn">Print Individual Schedules</button>
+        <button id="printSummaryBtn" class="btn" style="background-color: #ff9800; display: none;">Print Filtered Summary Grid</button>
+
+        <div id="filterControls" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+            <span id="listFilters">
+                <label id="mainFilterLabel" style="font-weight: bold; margin-right: 5px;">Filter Items:</label>
+                <input type="text" id="mainEntityFilter" placeholder="" style="padding: 6px; margin-right: 20px; width: 220px;">
+            </span>
+
+            <span id="gridFilters" style="display: none;">
+                <label style="font-weight: bold; margin-right: 5px;">Filter Teachers:</label>
+                <input type="text" id="gridTeacherFilter" placeholder="e.g., RAR, JLC" style="padding: 6px; margin-right: 20px; width: 150px;">
+
+                <label style="font-weight: bold; margin-right: 5px;">Filter Rooms:</label>
+                <input type="text" id="gridRoomFilter" placeholder="e.g., D704, B603" style="padding: 6px; margin-right: 20px; width: 150px;">
+            </span>
+
+            <label style="font-weight: bold; margin-right: 5px;">Filter Lessons/Classes:</label>
+            <input type="text" id="classFilter" placeholder="e.g., 13PHE, 10COMP..." style="padding: 6px; width: 180px;">
+        </div>
+    </div>
+
+    <div id="timetableContainer"></div>
+    <div id="printOrderWrapper"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
